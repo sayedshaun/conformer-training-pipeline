@@ -1,0 +1,44 @@
+# All pipeline settings live here. train.py/eval.py/prepare_data.py each take
+# only --config (defaults to this file) and read their section below.
+# The Mozilla Data Collective API key is never set here - put it in .env instead.
+
+data:
+  dataset_id: cmqim44fo00tinr07mbu70eg7
+  output_dir: data
+  splits: [train, dev, test]
+  workers: 8
+  skip_download: false
+
+tokenizer:
+  manifests: [data/train_manifest.json]
+  tokenizer_dir: data/tokenizer_bn_bpe_v1024
+  vocab_size: 1024
+  model_type: bpe   # bpe | unigram (sentencepiece model_type)
+
+train:
+  pretrained_model: stt_en_fastconformer_hybrid_large_pc
+  tokenizer_dir: data/tokenizer_bn_bpe_v1024
+  train_manifest: data/train_manifest.json
+  val_manifest: data/dev_manifest.json
+  exp_name: fastconformer_finetune
+  exp_dir: experiments
+  batch_size: 2
+  val_batch_size: 2
+  num_workers: 8
+  lr: 1e-5
+  max_epochs: 100
+  devices: 1
+  precision: 16-mixed
+  accumulate_grad_batches: 6
+  gradient_clip_val: 1.0
+  freeze_encoder_steps: 0
+  wandb_project: ASR
+  wandb_entity: null
+  wandb_run_name: asr-fastconformer-finetune
+
+eval:
+  model_path: experiments/fastconformer_finetune/final.nemo
+  manifest: data/test_manifest.json
+  batch_size: 16
+  decoder: rnnt               # ctc | rnnt
+  output_predictions: null
