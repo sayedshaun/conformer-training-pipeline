@@ -1,0 +1,10 @@
+nemo_toolkit[asr]==2.7.3
+numba-cuda[cu13]==0.30.4
+pytorch-lightning==2.6.5
+torch==2.13.0
+soundfile==0.14.0
+pydub==0.25.1
+pandas==3.0.5
+tqdm==4.70.0
+wandb==0.28.1
+python-dotenv==1.2.2
