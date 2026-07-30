@@ -2,7 +2,7 @@
 
 Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConformer Hybrid (CTC + RNNT) speech recognition model on a new language, end to end: download a Common Voice–style corpus, train a tokenizer for the target language, fine-tune the model, and evaluate it.
 
-Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) data via the [Mozilla Data Collective](https://mozilladatacollective.com/) API, but the tokenizer/training/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
+Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) data via the [Mozilla Data Collective](https://mozilladatacollective.com/) API and the [OpenSLR-53](https://www.openslr.org/53/) Bengali ASR corpus, but the tokenizer/training/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
 
 ## Pipeline overview
 
@@ -18,7 +18,7 @@ Every stage is a thin CLI wrapper (`argparse`, one `--config` flag) around core 
 
 - Python 3.12
 - An NVIDIA GPU (training and evaluation both assume CUDA)
-- A [Mozilla Data Collective](https://mozilladatacollective.com/) API key, unless you already have the corpus on disk (`skip_download: true`)
+- A [Mozilla Data Collective](https://mozilladatacollective.com/) API key for the `mcv` data source, unless you already have the corpus on disk (`skip_download: true`). The `openslr` source needs no API key — it downloads directly from OpenSLR mirrors.
 
 ```bash
 python -m venv venv
@@ -67,7 +67,14 @@ Each stage is idempotent where it makes sense — `prepare_data.py` skips splits
 
 ### 1. Data preparation
 
-Downloads the dataset archive (resumable, retried on stalled connections), extracts it, and converts each split's clips to 16kHz mono WAV, writing a NeMo-format manifest (`{split}_manifest.json`) per split. If you already have the corpus extracted locally, set `skip_download: true` in `config.yaml` and point `output_dir` at it.
+`prepare_data.py` pulls one or more data sources, listed under `data.sources` in `config.yaml`, and merges them into a single set of manifests:
+
+- **`mcv`** ([`src/mcv.py`](src/mcv.py)) — downloads a Common Voice release via the Mozilla Data Collective API (resumable, retried on stalled connections), extracts it, and builds `train`/`dev`/`test` manifests from Common Voice's own validated splits (`validated.tsv`, `dev.tsv`, `test.tsv` — invalidated/other clips are never used).
+- **`openslr`** ([`src/openslr.py`](src/openslr.py)) — downloads the [OpenSLR-53](https://www.openslr.org/53/) Bengali corpus (16 zip shards), extracts them, and builds manifests from every utterance in `utt_spk_text.tsv`. The corpus has no official split, so a random `dev_utterances`/`test_utterances` sample (fixed seed) is held out and the rest becomes train.
+
+Each source converts its clips to 16kHz mono WAV under `output_dir/wavs/` and writes its own `{name}_{split}_manifest.json`. `prepare_data.py` then concatenates same-split files across sources into the final `train_manifest.json`, `dev_manifest.json`, `test_manifest.json` that `build_tokenizer.py`/`train.py`/`eval.py` read.
+
+If you already have a source's corpus extracted locally, set `skip_download: true` (globally, or per source) in `config.yaml` and point `output_dir` at it. For `openslr`, `shards` can be trimmed to a subset (e.g. `["0", "1"]`) instead of `all` for a smaller trial run.
 
 ### 2. Tokenizer
 
@@ -91,13 +98,16 @@ Runs the fine-tuned model over a manifest, reports WER and CER, and optionally w
 
 ```
 config.yaml            Single source of truth for all pipeline settings
-prepare_data.py         CLI: data download + manifest generation
+prepare_data.py         CLI: runs each configured data source, merges manifests
 build_tokenizer.py      CLI: tokenizer training
 train.py                CLI: model fine-tuning
 eval.py                 CLI: model evaluation
 src/
   config.py             YAML config-section loader
-  dataset.py             Download, extraction, and manifest-building logic
+  mcv.py                 Common Voice / Mozilla Data Collective source
+  openslr.py             OpenSLR-53 Bengali corpus source
+  download.py             Shared resumable-download helper
+  audio.py                Shared clip-to-16kHz-mono-WAV conversion helper
   tokenizer.py            SentencePiece tokenizer training logic
   training.py             NeMo/Lightning fine-tuning logic
   evaluation.py           WER/CER evaluation logic
