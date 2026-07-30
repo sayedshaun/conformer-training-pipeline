@@ -33,6 +33,8 @@ def merge_manifests(output_dir: Path, source_names: list) -> None:
             for part_path in part_paths:
                 with open(part_path) as f:
                     out.write(f.read())
+        for part_path in part_paths:
+            part_path.unlink()
 
 
 def main():
