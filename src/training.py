@@ -1,6 +1,7 @@
 import copy
 
 import lightning.pytorch as pl
+import torch
 from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
 from nemo.utils.exp_manager import exp_manager
 
@@ -25,8 +26,8 @@ def build_trainer(args, callbacks) -> pl.Trainer:
         precision=args.precision,
         accumulate_grad_batches=args.accumulate_grad_batches,
         gradient_clip_val=args.gradient_clip_val,
-        log_every_n_steps=25,
-        check_val_every_n_epoch=1,
+        log_every_n_steps=args.log_every_n_steps,
+        val_check_interval=args.val_check_interval,
         strategy="ddp" if args.devices != 1 else "auto",
         use_distributed_sampler=False,
         callbacks=callbacks,
@@ -57,6 +58,8 @@ def build_exp_manager_cfg(args) -> dict:
 
 
 def run_training(args):
+    torch.set_float32_matmul_precision("medium")
+
     callbacks = []
     if args.freeze_encoder_steps > 0:
         callbacks.append(UnfreezeEncoderCallback(args.freeze_encoder_steps))

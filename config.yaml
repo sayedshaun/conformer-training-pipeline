@@ -18,7 +18,7 @@ data:
       test_utterances: 500
 
 tokenizer:
-  manifests: [data/train_manifest.json]
+  manifests: [data/train_manifest.json, data/dev_manifest.json, data/test_manifest.json]
   tokenizer_dir: data/tokenizer_bn_bpe_v1024
   vocab_size: 1024
   model_type: bpe   # bpe | unigram (sentencepiece model_type)
@@ -37,6 +37,8 @@ train:
   max_epochs: 100
   devices: 1
   precision: 16-mixed
+  val_check_interval: 5000
+  log_every_n_steps: 5000
   accumulate_grad_batches: 6
   gradient_clip_val: 1.0
   freeze_encoder_steps: 0
