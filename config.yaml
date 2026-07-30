@@ -3,11 +3,19 @@
 # The Mozilla Data Collective API key is never set here - put it in .env instead.
 
 data:
-  dataset_id: cmqim44fo00tinr07mbu70eg7
   output_dir: data
-  splits: [train, dev, test]
   workers: 8
   skip_download: false
+  sources:
+    - type: mcv
+      name: mcv
+      dataset_id: cmqim44fo00tinr07mbu70eg7
+      splits: [train, dev, test]
+    - type: openslr
+      name: openslr
+      shards: all          # or a list of hex digits, e.g. ["0", "1", "2"], to only pull a subset
+      dev_utterances: 500
+      test_utterances: 500
 
 tokenizer:
   manifests: [data/train_manifest.json]
