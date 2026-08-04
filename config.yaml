@@ -1,7 +1,3 @@
-# All pipeline settings live here. train.py/eval.py/prepare_data.py each take
-# only --config (defaults to this file) and read their section below.
-# The Mozilla Data Collective API key is never set here - put it in .env instead.
-
 data:
   output_dir: data
   workers: 8
@@ -13,15 +9,18 @@ data:
       splits: [train, dev, test]
     - type: openslr
       name: openslr
-      shards: all          # or a list of hex digits, e.g. ["0", "1", "2"], to only pull a subset
+      shards: all   
       dev_utterances: 500
       test_utterances: 500
+    - type: fleurs
+      name: fleurs         
+  split_ratio: {train: 98, dev: 0.67, test: 1.33}
 
 tokenizer:
   manifests: [data/train_manifest.json, data/dev_manifest.json, data/test_manifest.json]
   tokenizer_dir: data/tokenizer_bn_bpe_v1024
   vocab_size: 1024
-  model_type: bpe   # bpe | unigram (sentencepiece model_type)
+  model_type: bpe   # bpe | unigram
 
 train:
   pretrained_model: stt_en_fastconformer_hybrid_large_pc

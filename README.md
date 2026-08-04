@@ -2,7 +2,7 @@
 
 Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConformer Hybrid (CTC + RNNT) speech recognition model on a new language, end to end: download a Common Voice–style corpus, train a tokenizer for the target language, fine-tune the model, and evaluate it.
 
-Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) data via the [Mozilla Data Collective](https://mozilladatacollective.com/) API and the [OpenSLR-53](https://www.openslr.org/53/) Bengali ASR corpus, but the tokenizer/training/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
+Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) data via the [Mozilla Data Collective](https://mozilladatacollective.com/) API, the [OpenSLR-53](https://www.openslr.org/53/) Bengali ASR corpus, and Google's [FLEURS](https://huggingface.co/datasets/google/fleurs) benchmark, but the tokenizer/training/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
 
 ## Pipeline overview
 
@@ -18,7 +18,7 @@ Every stage is a thin CLI wrapper (`argparse`, one `--config` flag) around core 
 
 - Python 3.12
 - An NVIDIA GPU (training and evaluation both assume CUDA)
-- A [Mozilla Data Collective](https://mozilladatacollective.com/) API key for the `mcv` data source, unless you already have the corpus on disk (`skip_download: true`). The `openslr` source needs no API key — it downloads directly from OpenSLR mirrors.
+- A [Mozilla Data Collective](https://mozilladatacollective.com/) API key for the `mcv` data source, unless you already have the corpus on disk (`skip_download: true`). The `openslr` and `fleurs` sources need no API key — `openslr` downloads directly from OpenSLR mirrors, and `fleurs` pulls via the HuggingFace `datasets` library.
 
 ```bash
 python -m venv venv
@@ -71,6 +71,7 @@ Each stage is idempotent where it makes sense — `prepare_data.py` skips splits
 
 - **`mcv`** ([`src/mcv.py`](src/mcv.py)) — downloads a Common Voice release via the Mozilla Data Collective API (resumable, retried on stalled connections), extracts it, and builds `train`/`dev`/`test` manifests from Common Voice's own validated splits (`validated.tsv`, `dev.tsv`, `test.tsv` — invalidated/other clips are never used).
 - **`openslr`** ([`src/openslr.py`](src/openslr.py)) — downloads the [OpenSLR-53](https://www.openslr.org/53/) Bengali corpus (16 zip shards), extracts them, and builds manifests from every utterance in `utt_spk_text.tsv`. The corpus has no official split, so a random `dev_utterances`/`test_utterances` sample (fixed seed) is held out and the rest becomes train.
+- **`fleurs`** ([`src/fleurs.py`](src/fleurs.py)) — pulls all of `bn_in`'s splits (train/validation/test) from [google/fleurs](https://huggingface.co/datasets/google/fleurs) via the HuggingFace `datasets` library and folds them all into our `train` manifest. Since our own dev/test held-out sets already come from the `mcv`/`openslr` sources, there's no eval-contamination risk in also training on fleurs' own dev/test.
 
 Each source converts its clips to 16kHz mono WAV under `output_dir/wavs/` and writes its own `{name}_{split}_manifest.json`. `prepare_data.py` then concatenates same-split files across sources into the final `train_manifest.json`, `dev_manifest.json`, `test_manifest.json` that `build_tokenizer.py`/`train.py`/`eval.py` read.
 
@@ -106,6 +107,7 @@ src/
   config.py             YAML config-section loader
   mcv.py                 Common Voice / Mozilla Data Collective source
   openslr.py             OpenSLR-53 Bengali corpus source
+  fleurs.py             google/fleurs (bn_in, all splits folded into train) source
   download.py             Shared resumable-download helper
   audio.py                Shared clip-to-16kHz-mono-WAV conversion helper
   tokenizer.py            SentencePiece tokenizer training logic
