@@ -19,9 +19,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.config import load_section
-from src.fleurs import prepare_fleurs_dataset
-from src.mcv import prepare_mcv_dataset
-from src.openslr import prepare_openslr_dataset
+from src.opends.fleurs import prepare_fleurs_dataset
+from src.opends.mcv import prepare_mcv_dataset
+from src.opends.openslr import prepare_openslr_dataset
 
 load_dotenv()
 
