@@ -1,6 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cu128
 nemo_toolkit[asr]==2.7.3
-numba-cuda[cu13]==0.30.4
+numba-cuda[cu12]==0.30.4
 pytorch-lightning==2.6.5
 torch==2.11.0+cu128
 soundfile==0.14.0
