@@ -32,6 +32,30 @@ Put your API key in a `.env` file at the project root (never in `config.yaml`):
 echo "MDC_API_KEY=your-key-here" >> .env
 ```
 
+### GPU / CUDA version
+
+`requirements.txt` pins `torch` and `numba-cuda` to wheels built for **CUDA 12.8**, matching the driver on the reference training server. pip does not auto-detect your driver's CUDA version, so on a machine with a different one you must swap these pins yourself — check your driver's max supported CUDA version with `nvidia-smi` (top-right of the header) first.
+
+For a server whose driver supports **CUDA 13** instead, edit `requirements.txt`:
+
+```diff
+- --extra-index-url https://download.pytorch.org/whl/cu128
++ --extra-index-url https://download.pytorch.org/whl/cu130
+- numba-cuda[cu12]==0.30.4
++ numba-cuda[cu13]==0.30.4
+- torch==2.11.0+cu128
++ torch==2.13.0+cu130
+```
+
+Then reinstall and verify:
+
+```bash
+pip install --force-reinstall -r requirements.txt
+python -c "import torch; print(torch.version.cuda)"  # should print 13.0
+```
+
+The `torch` CUDA build and the `numba-cuda` extra must always target the same CUDA major version — `numba-cuda[cu13]` pins `cuda-bindings==13.*`, which conflicts with a `cu128` torch build (it requires `cuda-bindings<13`), so mixing them fails dependency resolution.
+
 ## Configuration
 
 Every script takes only `-c/--config` (defaults to `config.yaml`) and reads its own section:
