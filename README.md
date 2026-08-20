@@ -34,27 +34,29 @@ echo "MDC_API_KEY=your-key-here" >> .env
 
 ### GPU / CUDA version
 
-`requirements.txt` pins `torch` and `numba-cuda` to wheels built for **CUDA 12.8**, matching the driver on the reference training server. pip does not auto-detect your driver's CUDA version, so on a machine with a different one you must swap these pins yourself — check your driver's max supported CUDA version with `nvidia-smi` (top-right of the header) first.
+`requirements.txt` pins `torch` to a wheel built for **CUDA 12.8** and `numba-cuda` to `0.15.1`, matching the driver on the reference training server. pip does not auto-detect your driver's CUDA version, so on a machine with a different one you must swap these pins yourself — check your driver's max supported CUDA version with `nvidia-smi` (top-right of the header) first.
 
-For a server whose driver supports **CUDA 13** instead, edit `requirements.txt`:
+NVIDIA drivers are backward-compatible with older CUDA builds, so a driver that supports CUDA 13 can still run these CUDA-12.8 wheels without any changes — only a driver **older** than 12.8 requires switching to an older CUDA build:
 
 ```diff
 - --extra-index-url https://download.pytorch.org/whl/cu128
-+ --extra-index-url https://download.pytorch.org/whl/cu130
-- numba-cuda[cu12]==0.30.4
-+ numba-cuda[cu13]==0.30.4
++ --extra-index-url https://download.pytorch.org/whl/cu126
+- numba-cuda[cu12]==0.15.1
++ numba-cuda[cu11]==0.15.1
 - torch==2.11.0+cu128
-+ torch==2.13.0+cu130
++ torch==2.7.1+cu126
 ```
 
 Then reinstall and verify:
 
 ```bash
 pip install --force-reinstall -r requirements.txt
-python -c "import torch; print(torch.version.cuda)"  # should print 13.0
+python -c "import torch; print(torch.version.cuda)"
 ```
 
-The `torch` CUDA build and the `numba-cuda` extra must always target the same CUDA major version — `numba-cuda[cu13]` pins `cuda-bindings==13.*`, which conflicts with a `cu128` torch build (it requires `cuda-bindings<13`), so mixing them fails dependency resolution.
+The `torch` CUDA build and the `numba-cuda` extra must always target the same CUDA major version, since `cuda-bindings` (a shared dependency) is pinned per-major-version by each — mixing e.g. a `cu128` torch build with `numba-cuda[cu13]` fails dependency resolution (`cuda-bindings<13` vs `==13.*`).
+
+`numba-cuda` is deliberately held at `0.15.1` rather than a newer release: versions after `0.15.1` hit an `nvJitLink` linker error (`ERROR 4 in nvvmAddNVVMContainerToProgram`) inside NeMo's RNNT loss CUDA kernel. `0.15.1` only ships `cu11`/`cu12` extras (no `cu13`), so this pin is CUDA-12-and-older only — check the `numba-cuda` PyPI page before assuming a `cu13` extra exists on whatever version you land on.
 
 ## Configuration
 
