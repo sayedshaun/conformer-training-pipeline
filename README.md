@@ -1,4 +1,4 @@
-# ASR Training Pipeline
+# Conformer Training Pipeline
 
 Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConformer Hybrid (CTC + RNNT) model on a new language — download data, train a tokenizer, fine-tune, evaluate.
 
