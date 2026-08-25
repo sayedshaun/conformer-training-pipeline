@@ -14,7 +14,13 @@ Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logi
 
 ## Quick start
 
-Pick the command for where you're running — each clones/updates the repo, installs deps, then runs `prepare_data.py` → `data_stats.py` → `train.py`:
+Each `pipeline*.sh` script runs the same five steps end to end:
+
+```
+git clone/pull  →  install deps  →  prepare_data.py  →  data_stats.py  →  train.py
+```
+
+Pick the command for where you're running:
 
 **Dedicated GPU server**
 
