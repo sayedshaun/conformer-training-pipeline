@@ -16,11 +16,23 @@ Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logi
 
 Pick the command for where you're running — each clones/updates the repo, installs deps, then runs `prepare_data.py` → `data_stats.py` → `train.py`:
 
-| Environment | Command |
-|---|---|
-| Dedicated GPU server | `curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh \| bash` |
-| Kaggle notebook | `!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_kaggle.sh \| bash` |
-| Colab notebook | `!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh \| bash` |
+**Dedicated GPU server**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
+```
+
+**Kaggle notebook**
+
+```bash
+!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_kaggle.sh | bash
+```
+
+**Colab notebook**
+
+```bash
+!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh | bash
+```
 
 `pipeline.sh` uses a `venv`, falling back to the system Python if venv creation fails. `pipeline_kaggle.sh`/`pipeline_colab.sh` skip venv entirely and `--force-reinstall` into the system environment, since both platforms preinstall their own torch/CUDA stack and often have a broken `venv`/`ensurepip`.
 
