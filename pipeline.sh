@@ -29,7 +29,19 @@ if [ -d "venv" ] && [ -f "venv/bin/pip" ]; then
   source venv/bin/activate
   PYTHON=python
 fi
-"$PYTHON" -m pip install -r requirements.txt
+
+# Trim pip's noisy resolver/build output down to just package names and
+# download progress, without silencing errors.
+pip_install() {
+  set +o pipefail
+  "$PYTHON" -m pip install --disable-pip-version-check "$@" 2>&1 \
+    | grep --line-buffered -E '^(Collecting|Downloading|Installing collected packages|Successfully installed|ERROR)'
+  local status=${PIPESTATUS[0]}
+  set -o pipefail
+  return "$status"
+}
+
+pip_install -r requirements.txt
 
 "$PYTHON" prepare_data.py
 "$PYTHON" data_stats.py

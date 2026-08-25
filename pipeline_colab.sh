@@ -23,7 +23,18 @@ fi
 
 cd "$REPO_DIR"
 
-python3 -m pip install --force-reinstall -r requirements.txt
+# Trim pip's noisy resolver/build output down to just package names and
+# download progress, without silencing errors.
+pip_install() {
+  set +o pipefail
+  python3 -m pip install --disable-pip-version-check "$@" 2>&1 \
+    | grep --line-buffered -E '^(Collecting|Downloading|Installing collected packages|Successfully installed|ERROR)'
+  local status=${PIPESTATUS[0]}
+  set -o pipefail
+  return "$status"
+}
+
+pip_install --force-reinstall -r requirements.txt
 
 python3 prepare_data.py
 python3 data_stats.py
