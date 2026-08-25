@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="assets/conformer_block.svg" alt="Conformer encoder block architecture" width="300">
+  <br>
+  <sub><a href="https://arxiv.org/abs/2005.08100">Conformer: Convolution-augmented Transformer for Speech Recognition</a></sub>
+</p>
+
 # Conformer Training Pipeline
 
 Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConformer Hybrid (CTC + RNNT) model on a new language — download data, train a tokenizer, fine-tune, evaluate.
