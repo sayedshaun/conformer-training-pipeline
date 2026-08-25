@@ -18,7 +18,11 @@ def download_dataset(dataset_id: str, api_key: str, dest: Path) -> Path:
         f"https://mozilladatacollective.com/api/datasets/{dataset_id}/download",
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        raise requests.exceptions.HTTPError(
+            f"{resp.status_code} {resp.reason} for url {resp.url}: {resp.text}",
+            response=resp,
+        )
     download_url = resp.json()["downloadUrl"]
 
     archive_path = dest / f"{dataset_id}.tar.gz"
