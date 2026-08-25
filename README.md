@@ -135,10 +135,15 @@ Runs the fine-tuned model over a manifest, reports WER/CER, and optionally write
 
 ```
 config.yaml            Single source of truth for all pipeline settings
+requirements.txt       Pinned Python dependencies (see GPU / CUDA version)
 prepare_data.py        CLI: runs each configured data source, merges manifests
 build_tokenizer.py      CLI: tokenizer training
 train.py                CLI: model fine-tuning
 eval.py                 CLI: model evaluation
+data_stats.py           CLI: prints manifest/dataset statistics
+pipeline.sh             Bootstrap: clone/update + run the pipeline on a GPU server
+pipeline_kaggle.sh       Bootstrap: same, for Kaggle notebooks
+pipeline_colab.sh        Bootstrap: same, for Colab notebooks
 src/
   config.py             YAML config-section loader
   mcv.py                Common Voice / Mozilla Data Collective source
