@@ -17,12 +17,20 @@ fi
 
 cd "$REPO_DIR"
 
-if [ ! -d "venv" ]; then
-  python3 -m venv venv
+PYTHON=python3
+if [ ! -d "venv" ] && python3 -m venv venv 2>/dev/null; then
+  :
+elif [ -d "venv" ] && [ ! -f "venv/bin/pip" ]; then
+  # venv exists but pip bootstrap failed (e.g. broken ensurepip on some
+  # hosted notebook containers) - drop it and use the system python instead.
+  rm -rf venv
 fi
-source venv/bin/activate
-pip install -r requirements.txt
+if [ -d "venv" ] && [ -f "venv/bin/pip" ]; then
+  source venv/bin/activate
+  PYTHON=python
+fi
+"$PYTHON" -m pip install -r requirements.txt
 
-python prepare_data.py
-python data_stats.py
-python train.py
+"$PYTHON" prepare_data.py
+"$PYTHON" data_stats.py
+"$PYTHON" train.py
