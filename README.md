@@ -58,6 +58,16 @@ The `torch` CUDA build and the `numba-cuda` extra must always target the same CU
 
 `numba-cuda` is deliberately held at `0.15.1` rather than a newer release: versions after `0.15.1` hit an `nvJitLink` linker error (`ERROR 4 in nvvmAddNVVMContainerToProgram`) inside NeMo's RNNT loss CUDA kernel. `0.15.1` only ships `cu11`/`cu12` extras (no `cu13`), so this pin is CUDA-12-and-older only — check the `numba-cuda` PyPI page before assuming a `cu13` extra exists on whatever version you land on.
 
+## Quick start
+
+Run the full pipeline (clone/update repo, install deps, prep data, print stats, train) on a fresh machine with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
+```
+
+This runs [`pipeline.sh`](pipeline.sh), which does, in order: `git clone`/`git pull` → `pip install -r requirements.txt` → `python prepare_data.py` → `python data_stats.py` → `python train.py`.
+
 ## Configuration
 
 Every script takes only `-c/--config` (defaults to `config.yaml`) and reads its own section:
