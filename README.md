@@ -5,9 +5,11 @@ Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConform
 Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) (via the [Mozilla Data Collective](https://mozilladatacollective.com/) API), [OpenSLR-53](https://www.openslr.org/53/) (Bengali), and Google's [FLEURS](https://huggingface.co/datasets/google/fleurs) — but the tokenizer/train/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
 
 ```
-prepare_data.py  →  build_tokenizer.py  →  train.py  →  eval.py
-  download +          SentencePiece         fine-tune       WER/CER on
-  build manifests      BPE/unigram           CTC+RNNT        held-out test
+┌─────────────────┐  →  ┌────────────────────┐  →  ┌───────────┐  →  ┌───────────────┐
+│ prepare_data.py │  →  │ build_tokenizer.py │  →  │ train.py  │  →  │ eval.py       │
+│ download +      │     │ SentencePiece      │     │ fine-tune │     │ WER/CER on    │
+│ build manifests │     │ BPE/unigram        │     │ CTC+RNNT  │     │ held-out test │
+└─────────────────┘     └────────────────────┘     └───────────┘     └───────────────┘
 ```
 
 Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logic in [`src/`](src/). Each script reads only its own top-level section of the config, which is the single source of truth for all settings.
