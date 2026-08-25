@@ -32,7 +32,52 @@ pip install -r requirements.txt
 echo "MDC_API_KEY=your-key-here" >> .env   # only needed for the mcv source
 ```
 
-Requires Python 3.12 and an NVIDIA GPU. The `mcv` data source needs a [Mozilla Data Collective](https://mozilladatacollective.com/) API key unless `skip_download: true` is set; `openslr` and `fleurs` need no key.
+Requires Python 3.12 and an NVIDIA GPU. The `mcv` data source needs a [Mozilla Data Collective](https://mozilladatacollective.com/) API key unless `skip_download: true` is set; `openslr` and `fleurs` need no key. The `mcv` dataset also requires accepting its terms once on the [MDC dataset page](https://mozilladatacollective.com/datasets/cmqim44fo00tinr07mbu70eg7) before the API will serve a download.
+
+<details>
+<summary><b>Setting MDC_API_KEY on Kaggle / Colab</b></summary>
+
+<br>
+
+A plain `.env` file doesn't persist across Kaggle/Colab sessions, so set the key as an environment variable in a notebook cell before running the pipeline command.
+
+**Kaggle** — use Kaggle's built-in Secrets manager so the key isn't stored in the notebook itself:
+
+1. **Add-ons** menu (top bar) → **Secrets** → **Add a new secret**, label it `MDC_API_KEY`, paste your key, save.
+2. Toggle the secret **on** for the current session in that same panel.
+3. In a cell, before the pipeline command:
+   ```python
+   from kaggle_secrets import UserSecretsClient
+   import os
+   os.environ["MDC_API_KEY"] = UserSecretsClient().get_secret("MDC_API_KEY")
+   ```
+4. Then run the pipeline (same or a later cell — env vars set in Python persist for the rest of the kernel session, including `!` shell commands):
+   ```python
+   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_kaggle.sh | bash
+   ```
+
+**Colab** — use Colab's Secrets panel (the key icon in the left sidebar):
+
+1. Click the **key icon** in the left sidebar → **Add new secret**, name it `MDC_API_KEY`, paste your key.
+2. Toggle **Notebook access** on for it.
+3. In a cell, before the pipeline command:
+   ```python
+   from google.colab import userdata
+   import os
+   os.environ["MDC_API_KEY"] = userdata.get("MDC_API_KEY")
+   ```
+4. Then run the pipeline:
+   ```python
+   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh | bash
+   ```
+
+Quicker but less safe on either platform (key sits in plain text in the notebook — avoid if you'll share/publish it):
+```python
+import os
+os.environ["MDC_API_KEY"] = "your-actual-key-here"
+```
+
+</details>
 
 <details>
 <summary><b>GPU / CUDA version</b></summary>
