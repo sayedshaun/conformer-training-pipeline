@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Bootstrap script: clone the repo (or update it) and run the full pipeline
+# Bootstrap script for a GPU Ubuntu server (bare metal, VM, or cloud
+# instance): clone the repo (or update it) and run the full pipeline
 # sequentially: prepare_data.py -> data_stats.py -> build_tokenizer.py -> train.py
+#
+# Assumes python3/pip and a CUDA-matched torch install are already set up
+# (e.g. inside a venv you've activated) - this script does not create one.
 #
 # Usage (from anywhere):
 #   curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
@@ -18,17 +22,6 @@ fi
 cd "$REPO_DIR"
 
 PYTHON=python3
-if [ ! -d "venv" ] && python3 -m venv venv 2>/dev/null; then
-  :
-elif [ -d "venv" ] && [ ! -f "venv/bin/pip" ]; then
-  # venv exists but pip bootstrap failed (e.g. broken ensurepip on some
-  # hosted notebook containers) - drop it and use the system python instead.
-  rm -rf venv
-fi
-if [ -d "venv" ] && [ -f "venv/bin/pip" ]; then
-  source venv/bin/activate
-  PYTHON=python
-fi
 
 # Trim pip's noisy resolver/build output down to just package names and
 # download progress, without silencing errors.
