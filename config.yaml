@@ -29,7 +29,7 @@ train:
   val_manifest: data/dev_manifest.json
   exp_name: fastconformer_finetune
   exp_dir: experiments
-  batch_size: 4
+  batch_size: 16
   val_batch_size: 4
   num_workers: 8
   lr: 3e-5
@@ -38,7 +38,7 @@ train:
   precision: 16-mixed
   val_check_interval: 1.0
   log_every_n_steps: 50
-  accumulate_grad_batches: 3
+  accumulate_grad_batches: 1
   gradient_clip_val: 1.0
   freeze_encoder_steps: 500
   wandb_project: ASR
