@@ -22,7 +22,7 @@ Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logi
 
 ## Quick start
 
-Each `pipeline*.sh` script runs the same five steps end to end:
+Both `pipeline.sh` and `notebook.sh` run the same five steps end to end:
 
 ```
 git clone/pull  →  install deps  →  prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
@@ -36,28 +36,40 @@ Pick the command for where you're running:
 curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
 ```
 
-**Kaggle notebook**
+**Kaggle / Colab notebook**
 
 ```bash
-!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_kaggle.sh | bash
+!WANDB_API_KEY=xxxx curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
 ```
 
-**Colab notebook**
-
-```bash
-!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh | bash
-```
-
-`pipeline.sh` uses a `venv`, falling back to the system Python if venv creation fails. `pipeline_kaggle.sh`/`pipeline_colab.sh` skip venv entirely and `--force-reinstall` into the system environment, since both platforms preinstall their own torch/CUDA stack and often have a broken `venv`/`ensurepip`.
+`pipeline.sh` uses a `venv`, falling back to the system Python if venv creation fails. `notebook.sh` skips venv entirely and `--force-reinstall`s into the system environment, since both platforms preinstall their own torch/CUDA stack and often have a broken `venv`/`ensurepip`. It also logs in to W&B automatically — from `WANDB_API_KEY` if set, otherwise from Kaggle's Secrets add-on (see below) if available.
 
 To override `config.yaml` values from the command line (e.g. picking a single data source, or a different batch size), pass flags after `-s --` when piping into `bash`, or directly as arguments when running the script locally:
 
 ```bash
 # piped (Kaggle/Colab/curl)
-!curl -fsSL .../pipeline_kaggle.sh | bash -s -- --dataset fleurs --batch 16
+!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash -s -- --dataset fleurs --batch 16
 
 # local
 ./pipeline.sh --dataset fleurs --batch 16
+```
+
+`notebook.sh` also accepts flags via an `ARGS` env var, which is often easier to compose in a notebook cell than `-s -- ...`:
+
+```bash
+!ARGS="--batch 16 --dataset fleurs --gpus all" curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
+```
+
+`ARGS` is only used when no positional args are already passed after `-s --`.
+
+Note that each `!` line in a notebook cell runs as its own subshell, so `!ARGS="..." curl ... | bash` only works with `ARGS` set on that same line. To set it separately (e.g. alongside `WANDB_API_KEY`/`MDC_API_KEY` from Secrets), use `os.environ` in a Python cell instead — it persists across cells, including later `!` shell commands:
+
+```python
+import os
+os.environ["ARGS"] = "--batch 16 --dataset fleurs --gpus all"
+```
+```bash
+!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
 ```
 
 `--dataset` filters `data.sources` down to the matching name/type (forwarded to `prepare_data.py`); `--batch` overrides `train.batch_size`; `--gpus` overrides `train.devices` — pass `all` for every visible GPU, a count (e.g. `2`), or specific indices (e.g. `0,1`), which switches training to DDP automatically whenever more than one device is selected. For anything else, use `--set key=value` (repeatable), e.g. `--set lr=2e-5` or `--set workers=16`.
@@ -91,7 +103,7 @@ A plain `.env` file doesn't persist across Kaggle/Colab sessions, so set the key
    ```
 4. Then run the pipeline (same or a later cell — env vars set in Python persist for the rest of the kernel session, including `!` shell commands):
    ```python
-   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_kaggle.sh | bash
+   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
    ```
 
 **Colab** — use Colab's Secrets panel (the key icon in the left sidebar):
@@ -106,7 +118,7 @@ A plain `.env` file doesn't persist across Kaggle/Colab sessions, so set the key
    ```
 4. Then run the pipeline:
    ```python
-   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh | bash
+   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
    ```
 
 Quicker but less safe on either platform (key sits in plain text in the notebook — avoid if you'll share/publish it):
@@ -225,8 +237,7 @@ train.py             -- CLI: model fine-tuning
 eval.py              -- CLI: model evaluation
 data_stats.py        -- CLI: prints manifest/dataset statistics
 pipeline.sh          -- Bootstrap: clone/update + run the pipeline on a GPU server
-pipeline_kaggle.sh   -- Bootstrap: same, for Kaggle notebooks
-pipeline_colab.sh    -- Bootstrap: same, for Colab notebooks
+notebook.sh          -- Bootstrap: same, for Kaggle/Colab notebooks (no venv, auto W&B login)
 src/
   config.py          -- YAML config-section loader
   mcv.py             -- Common Voice / Mozilla Data Collective source
