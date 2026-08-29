@@ -32,7 +32,7 @@ train:
   batch_size: 4
   val_batch_size: 4
   num_workers: 8
-  lr: 1e-5
+  lr: 3e-5
   max_epochs: 100
   devices: 1     # int count, -1 for all GPUs, or a list e.g. [0, 1]
   precision: 16-mixed
@@ -40,7 +40,7 @@ train:
   log_every_n_steps: 50
   accumulate_grad_batches: 3
   gradient_clip_val: 1.0
-  freeze_encoder_steps: 0
+  freeze_encoder_steps: 500
   wandb_project: ASR
   wandb_entity: null
   wandb_run_name: asr-fastconformer-finetune
