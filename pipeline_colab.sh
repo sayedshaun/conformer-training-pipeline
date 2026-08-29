@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bootstrap script for Google Colab notebooks: clone the repo (or update it)
 # and run the full pipeline sequentially: prepare_data.py -> data_stats.py ->
-# train.py
+# build_tokenizer.py -> train.py
 #
 # Colab containers ship a preinstalled torch/CUDA stack and often have a
 # broken venv/ensurepip, so this installs straight into the system
@@ -10,6 +10,10 @@
 #
 # Usage (from a Colab notebook cell):
 #   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline_colab.sh | bash
+#
+# To override config.yaml values (forwarded to prepare_data.py/train.py),
+# pass them after `-s --`:
+#   !curl -fsSL .../pipeline_colab.sh | bash -s -- --dataset fleurs --batch 16
 set -euo pipefail
 
 REPO_URL="https://github.com/sayedshaun/conformer-training-pipeline.git"
@@ -36,6 +40,7 @@ pip_install() {
 
 pip_install --force-reinstall -r requirements.txt
 
-python3 prepare_data.py
+python3 prepare_data.py "$@"
 python3 data_stats.py
-python3 train.py
+python3 build_tokenizer.py
+python3 train.py "$@"

@@ -25,7 +25,7 @@ Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logi
 Each `pipeline*.sh` script runs the same five steps end to end:
 
 ```
-git clone/pull  →  install deps  →  prepare_data.py  →  data_stats.py  →  train.py
+git clone/pull  →  install deps  →  prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
 ```
 
 Pick the command for where you're running:
@@ -49,6 +49,18 @@ curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipel
 ```
 
 `pipeline.sh` uses a `venv`, falling back to the system Python if venv creation fails. `pipeline_kaggle.sh`/`pipeline_colab.sh` skip venv entirely and `--force-reinstall` into the system environment, since both platforms preinstall their own torch/CUDA stack and often have a broken `venv`/`ensurepip`.
+
+To override `config.yaml` values from the command line (e.g. picking a single data source, or a different batch size), pass flags after `-s --` when piping into `bash`, or directly as arguments when running the script locally:
+
+```bash
+# piped (Kaggle/Colab/curl)
+!curl -fsSL .../pipeline_kaggle.sh | bash -s -- --dataset fleurs --batch 16
+
+# local
+./pipeline.sh --dataset fleurs --batch 16
+```
+
+`--dataset` filters `data.sources` down to the matching name/type (forwarded to `prepare_data.py`); `--batch` overrides `train.batch_size`; `--gpus` overrides `train.devices` — pass `all` for every visible GPU, a count (e.g. `2`), or specific indices (e.g. `0,1`), which switches training to DDP automatically whenever more than one device is selected. For anything else, use `--set key=value` (repeatable), e.g. `--set lr=2e-5` or `--set workers=16`.
 
 ## Setup
 

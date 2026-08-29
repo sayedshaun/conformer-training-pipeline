@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap script: clone the repo (or update it) and run the full pipeline
-# sequentially: prepare_data.py -> data_stats.py -> train.py
+# sequentially: prepare_data.py -> data_stats.py -> build_tokenizer.py -> train.py
 #
 # Usage (from anywhere):
 #   curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
@@ -43,6 +43,7 @@ pip_install() {
 
 pip_install -r requirements.txt
 
-"$PYTHON" prepare_data.py
+"$PYTHON" prepare_data.py "$@"
 "$PYTHON" data_stats.py
-"$PYTHON" train.py
+"$PYTHON" build_tokenizer.py
+"$PYTHON" train.py "$@"

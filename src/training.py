@@ -18,6 +18,17 @@ class UnfreezeEncoderCallback(pl.Callback):
             self.done = True
 
 
+def _num_devices(devices) -> int:
+    """Resolves how many GPUs `devices` (an int count, -1 for "all", or a
+    list of GPU indices) actually maps to, so the right strategy can be
+    picked before Lightning builds the accelerator."""
+    if isinstance(devices, (list, tuple)):
+        return len(devices)
+    if devices == -1:
+        return torch.cuda.device_count()
+    return int(devices)
+
+
 def build_trainer(args, callbacks) -> pl.Trainer:
     return pl.Trainer(
         devices=args.devices,
@@ -28,7 +39,7 @@ def build_trainer(args, callbacks) -> pl.Trainer:
         gradient_clip_val=args.gradient_clip_val,
         log_every_n_steps=args.log_every_n_steps,
         val_check_interval=args.val_check_interval,
-        strategy="ddp" if args.devices != 1 else "auto",
+        strategy="ddp" if _num_devices(args.devices) != 1 else "auto",
         use_distributed_sampler=False,
         callbacks=callbacks,
         logger=False,

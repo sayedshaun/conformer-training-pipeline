@@ -89,14 +89,39 @@ def resplit_manifests(output_dir: Path, split_ratio: dict) -> None:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config.yaml")
-    cli_args = parser.parse_args()
+    parser.add_argument(
+        "--dataset",
+        help="Comma-separated source name/type to keep, e.g. --dataset fleurs "
+        "(default: all of data.sources)",
+    )
+    parser.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Override a data: config value, e.g. --set workers=16",
+    )
+    cli_args, _ = parser.parse_known_args()
 
-    args = load_section(cli_args.config, "data", required=["output_dir", "sources"])
+    args = load_section(
+        cli_args.config, "data", required=["output_dir", "sources"], overrides=cli_args.set
+    )
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    sources = args.sources
+    if cli_args.dataset:
+        wanted = {name.strip() for name in cli_args.dataset.split(",")}
+        sources = [
+            src for src in sources if src.get("name", src.get("type")) in wanted
+        ]
+        if not sources:
+            raise SystemExit(
+                f"--dataset {cli_args.dataset!r} matched none of data.sources' names/types"
+            )
+
     source_names = []
-    for source_cfg in args.sources:
+    for source_cfg in sources:
         source_cfg = dict(source_cfg)
         source_type = source_cfg.pop("type", None)
         if source_type not in PREPARERS:

@@ -34,7 +34,7 @@ train:
   num_workers: 8
   lr: 1e-5
   max_epochs: 100
-  devices: 1
+  devices: 1     # int count, -1 for all GPUs, or a list e.g. [0, 1]
   precision: 16-mixed
   val_check_interval: 5000
   log_every_n_steps: 5000
