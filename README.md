@@ -4,11 +4,11 @@
   <sub><a href="https://arxiv.org/abs/2005.08100">Conformer: Convolution-augmented Transformer for Speech Recognition</a></sub>
 </p>
 
-# Conformer Training Pipeline
+# Bengali Conformer Training Pipeline
 
-Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) Conformer/FastConformer Hybrid (CTC + RNNT) model on a new language — download data, train a tokenizer, fine-tune, evaluate.
+Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) Conformer/FastConformer Hybrid (CTC + RNNT) model for Bengali speech recognition — download data, train a tokenizer, fine-tune, evaluate.
 
-Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) (via the [Mozilla Data Collective](https://mozilladatacollective.com/) API), [OpenSLR-53](https://www.openslr.org/53/) (Bengali), and Google's [FLEURS](https://huggingface.co/datasets/google/fleurs) — but the tokenizer/train/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
+Built around Mozilla's Bengali [Common Voice](https://commonvoice.mozilla.org/) release (via the [Mozilla Data Collective](https://mozilladatacollective.com/) API), [OpenSLR-53](https://www.openslr.org/53/) (Bengali), and Google's [FLEURS](https://huggingface.co/datasets/google/fleurs) `bn_in` split — though the tokenizer/train/eval stages work with any manifest-based dataset in NeMo's JSON-lines format, so the pipeline can be retargeted to another language by swapping the data sources and base checkpoint.
 
 ```
 ┌─────────────────┐     ┌────────────────────┐     ┌───────────┐     ┌───────────────┐
