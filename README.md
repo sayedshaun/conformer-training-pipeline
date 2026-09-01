@@ -54,6 +54,8 @@ prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
 
 `pipeline.sh` takes no arguments — all configuration is read from `config.yaml`.
 
+To resume an interrupted run, set `train.resume: true` and re-run — it picks up the latest checkpoint under `exp_dir/exp_name` (optimizer state, epoch, and step included), instead of starting over from `pretrained_model`. If no checkpoint exists yet, it falls back to a fresh run.
+
 `eval.py` isn't part of `pipeline.sh` — run it separately once training finishes:
 
 ```bash

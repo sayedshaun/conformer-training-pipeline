@@ -75,6 +75,9 @@ def build_exp_manager_cfg(args) -> dict:
             "project": args.wandb_project,
             "entity": args.wandb_entity,
         }
+    if getattr(args, "resume", False):
+        cfg["resume_if_exists"] = True
+        cfg["resume_ignore_no_checkpoint"] = True
     return cfg
 
 
