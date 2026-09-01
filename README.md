@@ -6,7 +6,7 @@
 
 # Conformer Training Pipeline
 
-Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) FastConformer Hybrid (CTC + RNNT) model on a new language — download data, train a tokenizer, fine-tune, evaluate.
+Fine-tune a pretrained [NVIDIA NeMo](https://github.com/NVIDIA/NeMo) Conformer/FastConformer Hybrid (CTC + RNNT) model on a new language — download data, train a tokenizer, fine-tune, evaluate.
 
 Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) (via the [Mozilla Data Collective](https://mozilladatacollective.com/) API), [OpenSLR-53](https://www.openslr.org/53/) (Bengali), and Google's [FLEURS](https://huggingface.co/datasets/google/fleurs) — but the tokenizer/train/eval stages work with any manifest-based dataset in NeMo's JSON-lines format.
 
@@ -20,63 +20,11 @@ Built around Mozilla's [Common Voice](https://commonvoice.mozilla.org/) (via the
 
 Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logic in [`src/`](src/). Each script reads only its own top-level section of the config, which is the single source of truth for all settings.
 
-## Quick start
-
-Both `pipeline.sh` and `notebook.sh` run the same five steps end to end:
-
-```
-git clone/pull  →  install deps  →  prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
-```
-
-Pick the command for where you're running:
-
-**Dedicated GPU server**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/pipeline.sh | bash
-```
-
-**Kaggle / Colab notebook**
-
-```bash
-!WANDB_API_KEY=xxxx curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
-```
-
-`pipeline.sh` uses a `venv`, falling back to the system Python if venv creation fails. `notebook.sh` skips venv entirely and `--force-reinstall`s into the system environment, since both platforms preinstall their own torch/CUDA stack and often have a broken `venv`/`ensurepip`. It also logs in to W&B automatically — from `WANDB_API_KEY` if set, otherwise from Kaggle's Secrets add-on (see below) if available.
-
-To override `config.yaml` values from the command line (e.g. picking a single data source, or a different batch size), pass flags after `-s --` when piping into `bash`, or directly as arguments when running the script locally:
-
-```bash
-# piped (Kaggle/Colab/curl)
-!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash -s -- --dataset fleurs --batch 16
-
-# local
-./pipeline.sh --dataset fleurs --batch 16
-```
-
-`notebook.sh` also accepts flags via an `ARGS` env var, which is often easier to compose in a notebook cell than `-s -- ...`:
-
-```bash
-!ARGS="--batch 16 --dataset fleurs --gpus all" curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
-```
-
-`ARGS` is only used when no positional args are already passed after `-s --`.
-
-Note that each `!` line in a notebook cell runs as its own subshell, so `!ARGS="..." curl ... | bash` only works with `ARGS` set on that same line. To set it separately (e.g. alongside `WANDB_API_KEY`/`MDC_API_KEY` from Secrets), use `os.environ` in a Python cell instead — it persists across cells, including later `!` shell commands:
-
-```python
-import os
-os.environ["ARGS"] = "--batch 16 --dataset fleurs --gpus all"
-```
-```bash
-!curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
-```
-
-`--dataset` filters `data.sources` down to the matching name/type (forwarded to `prepare_data.py`); `--batch` overrides `train.batch_size`; `--gpus` overrides `train.devices` — pass `all` for every visible GPU, a count (e.g. `2`), or specific indices (e.g. `0,1`), which switches training to DDP automatically whenever more than one device is selected. For anything else, use `--set key=value` (repeatable), e.g. `--set lr=2e-5` or `--set workers=16`.
-
 ## Setup
 
 ```bash
+git clone https://github.com/sayedshaun/conformer-training-pipeline.git
+cd conformer-training-pipeline
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 echo "MDC_API_KEY=your-key-here" >> .env   # only needed for the mcv source
@@ -84,50 +32,33 @@ echo "MDC_API_KEY=your-key-here" >> .env   # only needed for the mcv source
 
 Requires Python 3.12 and an NVIDIA GPU. The `mcv` data source needs a [Mozilla Data Collective](https://mozilladatacollective.com/) API key unless `skip_download: true` is set; `openslr` and `fleurs` need no key. The `mcv` dataset also requires accepting its terms once on the [MDC dataset page](https://mozilladatacollective.com/datasets/cmqim44fo00tinr07mbu70eg7) before the API will serve a download.
 
-<details>
-<summary><b>Setting MDC_API_KEY on Kaggle / Colab</b></summary>
+Instead of a `.env` file, `MDC_API_KEY` can also be exported directly in the shell:
 
-<br>
-
-A plain `.env` file doesn't persist across Kaggle/Colab sessions, so set the key as an environment variable in a notebook cell before running the pipeline command.
-
-**Kaggle** — use Kaggle's built-in Secrets manager so the key isn't stored in the notebook itself:
-
-1. **Add-ons** menu (top bar) → **Secrets** → **Add a new secret**, label it `MDC_API_KEY`, paste your key, save.
-2. Toggle the secret **on** for the current session in that same panel.
-3. In a cell, before the pipeline command:
-   ```python
-   from kaggle_secrets import UserSecretsClient
-   import os
-   os.environ["MDC_API_KEY"] = UserSecretsClient().get_secret("MDC_API_KEY")
-   ```
-4. Then run the pipeline (same or a later cell — env vars set in Python persist for the rest of the kernel session, including `!` shell commands):
-   ```python
-   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
-   ```
-
-**Colab** — use Colab's Secrets panel (the key icon in the left sidebar):
-
-1. Click the **key icon** in the left sidebar → **Add new secret**, name it `MDC_API_KEY`, paste your key.
-2. Toggle **Notebook access** on for it.
-3. In a cell, before the pipeline command:
-   ```python
-   from google.colab import userdata
-   import os
-   os.environ["MDC_API_KEY"] = userdata.get("MDC_API_KEY")
-   ```
-4. Then run the pipeline:
-   ```python
-   !curl -fsSL https://raw.githubusercontent.com/sayedshaun/conformer-training-pipeline/main/notebook.sh | bash
-   ```
-
-Quicker but less safe on either platform (key sits in plain text in the notebook — avoid if you'll share/publish it):
-```python
-import os
-os.environ["MDC_API_KEY"] = "your-actual-key-here"
+```bash
+export MDC_API_KEY=your-key-here
 ```
 
-</details>
+## Training
+
+Configure the run by editing [`config.yaml`](config.yaml) (data sources, tokenizer, model, training hyperparameters), then:
+
+```bash
+bash pipeline.sh
+```
+
+This installs `requirements.txt` into the active environment (assumes `python3`/`pip` and a CUDA-matched `torch` are already set up, e.g. inside the `venv` from Setup) and runs the pipeline stages in order:
+
+```
+prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
+```
+
+`pipeline.sh` takes no arguments — all configuration is read from `config.yaml`.
+
+`eval.py` isn't part of `pipeline.sh` — run it separately once training finishes:
+
+```bash
+python eval.py
+```
 
 <details>
 <summary><b>GPU / CUDA version</b></summary>
@@ -157,13 +88,6 @@ python -c "import torch; print(torch.version.cuda)"
 </details>
 
 ## Usage
-
-```bash
-python prepare_data.py     # 1. download + build train/dev/test manifests
-python build_tokenizer.py  # 2. train a SentencePiece tokenizer
-python train.py            # 3. fine-tune the pretrained model
-python eval.py             # 4. WER/CER on the held-out test set
-```
 
 Idempotent where it makes sense: `prepare_data.py` skips splits whose manifest already exists and resumes partial downloads. `train.py`/`build_tokenizer.py` always start fresh.
 
@@ -207,13 +131,22 @@ Trains a SentencePiece tokenizer (BPE or unigram) over the given manifests' text
 
 <br>
 
-Loads a pretrained FastConformer Hybrid checkpoint from NVIDIA's model registry, swaps in the target-language tokenizer via `change_vocabulary`, and fine-tunes with PyTorch Lightning:
+Loads a pretrained hybrid (CTC + RNNT) checkpoint from NVIDIA's model registry via `train.pretrained_model`, swaps in the target-language tokenizer via `change_vocabulary`, and fine-tunes with PyTorch Lightning:
 
 - Encoder freezing for the first N steps (`freeze_encoder_steps`), then automatic unfreezing
 - Gradient accumulation and mixed precision
 - Weights & Biases logging (`wandb_project`) and top-k checkpointing by validation WER, via NeMo's `exp_manager`
 
 Final checkpoint: `experiments/<exp_name>/final.nemo`.
+
+**Conformer vs. FastConformer** — `train.py` uses NeMo's generic `EncDecHybridRNNTCTCBPEModel`, so it isn't tied to FastConformer. To fine-tune a plain Conformer-Large model instead, just point `train.pretrained_model` in `config.yaml` at a Conformer hybrid RNNT-CTC checkpoint, e.g.:
+
+```diff
+- pretrained_model: stt_en_fastconformer_hybrid_large_pc
++ pretrained_model: stt_en_conformer_hybrid_large
+```
+
+No code changes needed. Note that Conformer-Large uses 4x subsampling (vs. FastConformer's 8x), so it processes more frames per second of audio and is more memory-hungry per batch — you may need to lower `train.batch_size` to avoid OOM.
 
 </details>
 
@@ -236,8 +169,7 @@ build_tokenizer.py   -- CLI: tokenizer training
 train.py             -- CLI: model fine-tuning
 eval.py              -- CLI: model evaluation
 data_stats.py        -- CLI: prints manifest/dataset statistics
-pipeline.sh          -- Bootstrap: clone/update + run the pipeline on a GPU server
-notebook.sh          -- Bootstrap: same, for Kaggle/Colab notebooks (no venv, auto W&B login)
+pipeline.sh          -- Run the pipeline on a GPU server (from within a cloned checkout)
 src/
   config.py          -- YAML config-section loader
   mcv.py             -- Common Voice / Mozilla Data Collective source
