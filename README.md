@@ -159,25 +159,6 @@ Runs the fine-tuned model over a manifest, reports WER/CER, and optionally write
 
 </details>
 
-## Project layout
+## License
 
-```
-config.yaml          -- Single source of truth for all pipeline settings
-requirements.txt     -- Pinned Python dependencies (see GPU / CUDA version)
-prepare_data.py      -- CLI: runs each configured data source, merges manifests
-build_tokenizer.py   -- CLI: tokenizer training
-train.py             -- CLI: model fine-tuning
-eval.py              -- CLI: model evaluation
-data_stats.py        -- CLI: prints manifest/dataset statistics
-pipeline.sh          -- Run the pipeline on a GPU server (from within a cloned checkout)
-src/
-  config.py          -- YAML config-section loader
-  mcv.py             -- Common Voice / Mozilla Data Collective source
-  openslr.py         -- OpenSLR-53 Bengali corpus source
-  fleurs.py          -- google/fleurs (bn_in, all splits folded into train) source
-  download.py        -- Shared resumable-download helper
-  audio.py           -- Shared clip-to-16kHz-mono-WAV conversion helper
-  tokenizer.py       -- SentencePiece tokenizer training logic
-  training.py        -- NeMo/Lightning fine-tuning logic
-  evaluation.py      -- WER/CER evaluation logic
-```
+[MIT](LICENSE)
