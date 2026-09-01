@@ -60,6 +60,24 @@ prepare_data.py  →  data_stats.py  →  build_tokenizer.py  →  train.py
 python eval.py
 ```
 
+### Base models
+
+`train.pretrained_model` accepts any checkpoint from NVIDIA's NeMo model registry, as long as its architecture matches `train.model_type` (defaults to `hybrid`):
+
+- **`hybrid`** (default) — loads with `EncDecHybridRNNTCTCBPEModel`, requires a Hybrid Transducer+CTC checkpoint. Some options:
+
+  | `pretrained_model` | Language |
+  |---|---|
+  | `stt_en_fastconformer_hybrid_large_pc` | English (default) |
+  | `stt_multilingual_fastconformer_hybrid_large_pc` | Multilingual (be/de/en/es/fr/hr/it/pl/ru/ua) |
+
+- **`ctc`** — loads with `EncDecCTCModelBPE`, for CTC-only checkpoints such as `stt_en_conformer_ctc_large` or `stt_en_fastconformer_ctc_large`.
+- **`rnnt`** — loads with `EncDecRNNTBPEModel`, for Transducer-only checkpoints such as `stt_en_conformer_transducer_large`.
+
+`eval.py`'s `decoder` setting only has an effect for `hybrid` checkpoints, since only they expose both a CTC and an RNNT head to switch between.
+
+Browse the full, up-to-date list on the [NGC catalog](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models) or [Hugging Face](https://huggingface.co/models?search=nvidia) — pick a checkpoint tagged Hybrid Transducer-CTC, CTC, or Transducer to match `model_type`, whose base language matches (or is close enough to bootstrap) the language you're fine-tuning for.
+
 <details>
 <summary><b>GPU / CUDA version</b></summary>
 

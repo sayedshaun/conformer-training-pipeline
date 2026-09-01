@@ -24,6 +24,7 @@ tokenizer:
 
 train:
   pretrained_model: stt_en_fastconformer_hybrid_large_pc
+  model_type: hybrid   # hybrid | ctc | rnnt
   tokenizer_dir: data/tokenizer_bn_bpe_v1024
   train_manifest: data/train_manifest.json
   val_manifest: data/dev_manifest.json

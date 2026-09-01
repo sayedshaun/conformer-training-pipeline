@@ -2,8 +2,18 @@ import copy
 
 import lightning.pytorch as pl
 import torch
-from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
+from nemo.collections.asr.models import (
+    EncDecCTCModelBPE,
+    EncDecHybridRNNTCTCBPEModel,
+    EncDecRNNTBPEModel,
+)
 from nemo.utils.exp_manager import exp_manager
+
+_MODEL_CLASSES = {
+    "hybrid": EncDecHybridRNNTCTCBPEModel,
+    "ctc": EncDecCTCModelBPE,
+    "rnnt": EncDecRNNTBPEModel,
+}
 
 
 class UnfreezeEncoderCallback(pl.Callback):
@@ -78,7 +88,12 @@ def run_training(args):
     trainer = build_trainer(args, callbacks)
     exp_manager(trainer, build_exp_manager_cfg(args))
 
-    model = EncDecHybridRNNTCTCBPEModel.from_pretrained(
+    model_type = getattr(args, "model_type", None) or "hybrid"
+    if model_type not in _MODEL_CLASSES:
+        raise SystemExit(
+            f"Invalid train.model_type {model_type!r}, expected one of {list(_MODEL_CLASSES)}"
+        )
+    model = _MODEL_CLASSES[model_type].from_pretrained(
         model_name=args.pretrained_model, trainer=trainer
     )
 
