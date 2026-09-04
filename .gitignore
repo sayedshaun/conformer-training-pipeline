@@ -4,3 +4,5 @@ data/
 experiments/
 __pycache__/
 *.pyc
+fastconformer/
+conformer/
