@@ -13,12 +13,16 @@ PYTHON=python3
 
 # Trim pip's noisy resolver/build output down to just package names and
 # download progress, without silencing errors.
+# errexit is disabled alongside pipefail because grep exits 1 when pip has
+# nothing to install (every line is "Requirement already satisfied"), which
+# would otherwise abort the whole script before pip's own status is read.
 pip_install() {
-  set +o pipefail
+  local status
+  set +e +o pipefail
   "$PYTHON" -m pip install --disable-pip-version-check "$@" 2>&1 \
     | grep --line-buffered -E '^(Collecting|Downloading|Installing collected packages|Successfully installed|ERROR)'
-  local status=${PIPESTATUS[0]}
-  set -o pipefail
+  status=${PIPESTATUS[0]}
+  set -e -o pipefail
   return "$status"
 }
 
