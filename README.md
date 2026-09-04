@@ -20,6 +20,25 @@ Built around Mozilla's Bengali [Common Voice](https://commonvoice.mozilla.org/) 
 
 Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logic in [`src/`](src/). Each script reads only its own top-level section of the config, which is the single source of truth for all settings.
 
+## Trained weights
+
+The Bengali model produced by this pipeline is released on Hugging Face:
+**[SayedShaun/stt_bn_fastconformer_hybrid_large](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large)**
+
+Fine-tuned from `stt_en_fastconformer_hybrid_large_pc` on ~300 h of Bengali read
+speech (Common Voice 26.0 + OpenSLR-53 + FLEURS `bn_in`), 262k utterances.
+
+| Held-out test (3,561 utterances) | WER | CER |
+|---|---|---|
+| RNNT (greedy, no LM) | **14.47%** | **3.96%** |
+
+```python
+from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
+
+model = EncDecHybridRNNTCTCBPEModel.from_pretrained("SayedShaun/stt_bn_fastconformer_hybrid_large")
+print(model.transcribe(["sample_bn.wav"])[0].text)
+```
+
 ## Setup
 
 ```bash
