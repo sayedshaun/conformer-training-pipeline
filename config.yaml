@@ -25,13 +25,8 @@ data:
       name: kathbath
     - type: indicvoices
       name: indicvoices
-    # Disabled: 121 GB download (62% of the total) for a corpus selected by
-    # district rather than language - WestBengal_Darjeeling in particular
-    # covers a heavily Nepali-speaking area, and nothing downstream filters
-    # by script. Re-enable once there is disk headroom; prepare_data.py will
-    # then fetch only this source.
-    # - type: vaani
-    #   name: vaani
+    - type: vaani
+      name: vaani
   split_ratio: {train: 98, dev: 0.67, test: 1.33}
 
 tokenizer:
