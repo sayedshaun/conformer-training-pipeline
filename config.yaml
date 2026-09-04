@@ -14,6 +14,19 @@ data:
       test_utterances: 500
     - type: fleurs
       name: fleurs         
+    - type: ben10
+      name: ben10
+    - type: openslr37
+      name: openslr37
+      locales: all
+    - type: shrutilipi
+      name: shrutilipi
+    - type: kathbath
+      name: kathbath
+    - type: indicvoices
+      name: indicvoices
+    - type: vaani
+      name: vaani
   split_ratio: {train: 98, dev: 0.67, test: 1.33}
 
 tokenizer:
