@@ -93,7 +93,7 @@ def load_pretrained(model_class, pretrained_model: str, trainer):
         return model_class.restore_from(pretrained_model, trainer=trainer)
 
     if "/" in pretrained_model and not pretrained_model.startswith("nvidia/"):
-        from huggingface_hub import list_repo_files, hf_hub_download
+        from huggingface_hub import hf_hub_download, list_repo_files
 
         nemo_files = [f for f in list_repo_files(pretrained_model) if f.endswith(".nemo")]
         if not nemo_files:
@@ -141,6 +141,14 @@ def run_training(args):
     train_ds_cfg.batch_size = args.batch_size
     train_ds_cfg.num_workers = args.num_workers
     train_ds_cfg.is_tarred = False
+    # Duration bounds are optional; NeMo drops out-of-range utterances at
+    # manifest load. The lower bound removes alignment failures too short to
+    # contain their transcript, the upper bound caps peak activation memory,
+    # which is set by the longest sample in a batch rather than the mean.
+    if getattr(args, "min_duration", None) is not None:
+        train_ds_cfg.min_duration = args.min_duration
+    if getattr(args, "max_duration", None) is not None:
+        train_ds_cfg.max_duration = args.max_duration
     model.setup_training_data(train_ds_cfg)
 
     val_ds_cfg = copy.deepcopy(model.cfg.train_ds)

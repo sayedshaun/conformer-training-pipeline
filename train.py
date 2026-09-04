@@ -6,8 +6,8 @@ All settings come from config.yaml's `train:` section.
 import argparse
 import os
 
-# Must be set before torch is imported (via src.training) - this GPU is small
-# enough (< 4 GiB) that allocator fragmentation alone can OOM a long run.
+# Must be set before torch is imported (via src.training). Allocator
+# fragmentation alone can OOM a long run once utterance lengths vary.
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 from dotenv import load_dotenv

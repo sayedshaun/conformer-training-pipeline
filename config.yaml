@@ -25,8 +25,13 @@ data:
       name: kathbath
     - type: indicvoices
       name: indicvoices
-    - type: vaani
-      name: vaani
+    # Disabled: 121 GB download (62% of the total) for a corpus selected by
+    # district rather than language - WestBengal_Darjeeling in particular
+    # covers a heavily Nepali-speaking area, and nothing downstream filters
+    # by script. Re-enable once there is disk headroom; prepare_data.py will
+    # then fetch only this source.
+    # - type: vaani
+    #   name: vaani
   split_ratio: {train: 98, dev: 0.67, test: 1.33}
 
 tokenizer:
@@ -36,32 +41,34 @@ tokenizer:
   model_type: bpe   # bpe | unigram
 
 train:
-  pretrained_model: ai4bharat/indicconformer_stt_bn_hybrid_ctc_rnnt_large
+  pretrained_model: stt_en_fastconformer_hybrid_large_pc
   model_type: hybrid   # hybrid | ctc | rnnt
   resume: true         # resume from the latest checkpoint in exp_dir/exp_name if one exists
-  tokenizer_dir: null  # null keeps the checkpoint's own tokenizer
+  tokenizer_dir: data/tokenizer_bn_bpe_v1024  # null keeps the checkpoint's own tokenizer
   train_manifest: data/train_manifest.json
   val_manifest: data/dev_manifest.json
-  exp_name: indicconformer_bn_finetune
+  min_duration: 0.5    # drops sub-0.5 s clips (alignment failures)
+  max_duration: 20.0   # median is 4.6 s; the 40 s tail sets peak VRAM
+  exp_name: fastconformer_hybrid_bn_v2
   exp_dir: experiments
-  batch_size: 8
+  batch_size: 32
   val_batch_size: 4
   num_workers: 8
   lr: 3e-5
-  max_epochs: 100
+  max_epochs: 30
   devices: 1     # int count, -1 for all GPUs, or a list e.g. [0, 1]
-  precision: 16-mixed
+  precision: bf16-mixed
   val_check_interval: 1.0
   log_every_n_steps: 50
-  accumulate_grad_batches: 4
+  accumulate_grad_batches: 1
   gradient_clip_val: 1.0
   freeze_encoder_steps: 500
   wandb_project: ASR
   wandb_entity: null
-  wandb_run_name: asr-indicconformer-bn-finetune
+  wandb_run_name: asr-fastconformer-hybrid-bn-v2
 
 eval:
-  model_path: experiments/indicconformer_bn_finetune/final.nemo
+  model_path: experiments/fastconformer_hybrid_bn_v2/final.nemo
   manifest: data/test_manifest.json
   batch_size: 16
   decoder: rnnt               # ctc | rnnt
