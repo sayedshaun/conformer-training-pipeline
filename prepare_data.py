@@ -2,7 +2,7 @@
 manifests.
 
 All settings come from config.yaml's `data:` section. Each entry under
-`data.sources` picks a `type` (mcv or openslr) and its own options; every
+`data.sources` picks a `type` (see PREPARERS below) and its own options; every
 source writes its own `{name}_{split}_manifest.json` files, which are then
 merged into the final train/dev/test manifests. If `data.split_ratio` is set,
 the merged pool is then reshuffled and resplit by that ratio instead of
@@ -19,16 +19,28 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.config import load_section
+from src.opends.ben10 import prepare_ben10_dataset
 from src.opends.fleurs import prepare_fleurs_dataset
+from src.opends.indicvoices import prepare_indicvoices_dataset
+from src.opends.kathbath import prepare_kathbath_dataset
 from src.opends.mcv import prepare_mcv_dataset
 from src.opends.openslr import prepare_openslr_dataset
+from src.opends.openslr37 import prepare_openslr37_dataset
+from src.opends.shrutilipi import prepare_shrutilipi_dataset
+from src.opends.vaani import prepare_vaani_dataset
 
 load_dotenv()
 
 PREPARERS = {
     "mcv": prepare_mcv_dataset,
     "openslr": prepare_openslr_dataset,
+    "openslr37": prepare_openslr37_dataset,
     "fleurs": prepare_fleurs_dataset,
+    "shrutilipi": prepare_shrutilipi_dataset,
+    "indicvoices": prepare_indicvoices_dataset,
+    "kathbath": prepare_kathbath_dataset,
+    "vaani": prepare_vaani_dataset,
+    "ben10": prepare_ben10_dataset,
 }
 SPLITS = ("train", "dev", "test")
 SPLIT_RATIO_SEED = 42
