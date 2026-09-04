@@ -1,12 +1,12 @@
 """Core dataset logic: download Mozilla Data Collective (Common Voice) releases
 and build NeMo manifests."""
 import json
+import tarfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pandas as pd
 import requests
-import tarfile
 from tqdm import tqdm
 
 from src.audio import convert_clip

@@ -129,7 +129,7 @@ def write_manifest(dataset, audio_col: str, text_col: str, clips_out_dir: Path,
                 duration = example[duration_col] if duration_col else None
                 if not duration:
                     duration = _clip_duration(dst)
-            except Exception as exc:  # a single unreadable clip shouldn't kill the run
+            except Exception as exc:  # noqa: BLE001 - one bad clip shouldn't kill the run
                 print(f"  skipping {dst.name}: {type(exc).__name__}: {exc}")
                 continue
             out.write(

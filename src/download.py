@@ -8,7 +8,9 @@ READ_TIMEOUT = 60  # seconds of silence on the socket before treating it as stal
 MAX_RETRIES = 8
 
 
-def download_with_resume(url: str, archive_path: Path, headers: dict = None) -> Path:
+def download_with_resume(
+    url: str, archive_path: Path, headers: dict | None = None
+) -> Path:
     base_headers = dict(headers or {})
     archive_path.parent.mkdir(parents=True, exist_ok=True)
 
