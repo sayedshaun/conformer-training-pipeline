@@ -81,6 +81,32 @@ def build_exp_manager_cfg(args) -> dict:
     return cfg
 
 
+def load_pretrained(model_class, pretrained_model: str, trainer):
+    """Load a base checkpoint by NGC name, HuggingFace repo id, or local path.
+
+    `from_pretrained` only resolves NVIDIA's own NGC/HF model names, so anything
+    else - a community repo like `ai4bharat/indicconformer_stt_bn_hybrid_ctc_rnnt_large`,
+    or a `.nemo` sitting on disk - is fetched first and restored from the file.
+    """
+    if pretrained_model.endswith(".nemo"):
+        print(f"Restoring from local checkpoint {pretrained_model}")
+        return model_class.restore_from(pretrained_model, trainer=trainer)
+
+    if "/" in pretrained_model and not pretrained_model.startswith("nvidia/"):
+        from huggingface_hub import list_repo_files, hf_hub_download
+
+        nemo_files = [f for f in list_repo_files(pretrained_model) if f.endswith(".nemo")]
+        if not nemo_files:
+            raise SystemExit(
+                f"{pretrained_model!r} has no .nemo file to restore from"
+            )
+        print(f"Downloading {nemo_files[0]} from {pretrained_model}")
+        local_path = hf_hub_download(pretrained_model, nemo_files[0])
+        return model_class.restore_from(local_path, trainer=trainer)
+
+    return model_class.from_pretrained(model_name=pretrained_model, trainer=trainer)
+
+
 def run_training(args):
     torch.set_float32_matmul_precision("medium")
 
@@ -96,13 +122,18 @@ def run_training(args):
         raise SystemExit(
             f"Invalid train.model_type {model_type!r}, expected one of {list(_MODEL_CLASSES)}"
         )
-    model = _MODEL_CLASSES[model_type].from_pretrained(
-        model_name=args.pretrained_model, trainer=trainer
-    )
+    model = load_pretrained(_MODEL_CLASSES[model_type], args.pretrained_model, trainer)
 
-    model.change_vocabulary(
-        new_tokenizer_dir=args.tokenizer_dir, new_tokenizer_type="bpe"
-    )
+    # A checkpoint already trained on the target language ships a matching
+    # tokenizer, and swapping it out would discard the pretrained decoder along
+    # with it. Setting tokenizer_dir to null keeps the checkpoint's own.
+    if args.tokenizer_dir:
+        model.change_vocabulary(
+            new_tokenizer_dir=args.tokenizer_dir, new_tokenizer_type="bpe"
+        )
+        print(f"Swapped in tokenizer from {args.tokenizer_dir}")
+    else:
+        print("tokenizer_dir is unset - keeping the checkpoint's own tokenizer")
     print(f"Tokenizer vocab size: {model.tokenizer.vocab_size}")
 
     train_ds_cfg = copy.deepcopy(model.cfg.train_ds)

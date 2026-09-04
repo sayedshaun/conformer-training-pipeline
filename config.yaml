@@ -36,15 +36,15 @@ tokenizer:
   model_type: bpe   # bpe | unigram
 
 train:
-  pretrained_model: stt_en_fastconformer_hybrid_large_pc
+  pretrained_model: ai4bharat/indicconformer_stt_bn_hybrid_ctc_rnnt_large
   model_type: hybrid   # hybrid | ctc | rnnt
-  resume: false        # resume from the latest checkpoint in exp_dir/exp_name if one exists
-  tokenizer_dir: data/tokenizer_bn_bpe_v1024
+  resume: true         # resume from the latest checkpoint in exp_dir/exp_name if one exists
+  tokenizer_dir: null  # null keeps the checkpoint's own tokenizer
   train_manifest: data/train_manifest.json
   val_manifest: data/dev_manifest.json
-  exp_name: fastconformer_finetune
+  exp_name: indicconformer_bn_finetune
   exp_dir: experiments
-  batch_size: 16
+  batch_size: 8
   val_batch_size: 4
   num_workers: 8
   lr: 3e-5
@@ -53,15 +53,15 @@ train:
   precision: 16-mixed
   val_check_interval: 1.0
   log_every_n_steps: 50
-  accumulate_grad_batches: 1
+  accumulate_grad_batches: 4
   gradient_clip_val: 1.0
   freeze_encoder_steps: 500
   wandb_project: ASR
   wandb_entity: null
-  wandb_run_name: asr-fastconformer-finetune
+  wandb_run_name: asr-indicconformer-bn-finetune
 
 eval:
-  model_path: experiments/fastconformer_finetune/final.nemo
+  model_path: experiments/indicconformer_bn_finetune/final.nemo
   manifest: data/test_manifest.json
   batch_size: 16
   decoder: rnnt               # ctc | rnnt
