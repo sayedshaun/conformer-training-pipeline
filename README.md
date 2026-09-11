@@ -159,7 +159,7 @@ The sources below are the scale-up set, all enabled in `config.yaml` — `bash p
 - **`shrutilipi`** ([`src/opends/shrutilipi.py`](src/opends/shrutilipi.py)) — ~440 h of All India Radio news from [ai4bharat/Shrutilipi](https://huggingface.co/datasets/ai4bharat/Shrutilipi) (~2 GB, CC BY 4.0, **gated**). Best hours-per-GB of the set.
 - **`kathbath`** ([`src/opends/kathbath.py`](src/opends/kathbath.py)) — read speech from 200+ Indian districts, [ai4bharat/Kathbath](https://huggingface.co/datasets/ai4bharat/Kathbath) (~10 GB, CC0, **gated**).
 - **`indicvoices`** ([`src/opends/indicvoices.py`](src/opends/indicvoices.py)) — spontaneous/extempore speech from [ai4bharat/IndicVoices](https://huggingface.co/datasets/ai4bharat/IndicVoices) (~43 GB, CC BY 4.0, **gated**). Largest and slowest to fetch.
-- **`vaani`** ([`src/opends/vaani.py`](src/opends/vaani.py)) — image-prompted rural speech from [ARTPARK-IISc/Vaani](https://huggingface.co/datasets/ARTPARK-IISc/Vaani) (CC BY 4.0, **gated**), one config per district. Defaults to the Bengali-speaking districts of West Bengal plus South Tripura; override with `configs:`.
+- **`vaani`** ([`src/opends/vaani.py`](src/opends/vaani.py)) — image-prompted rural speech from [ARTPARK-IISc/Vaani](https://huggingface.co/datasets/ARTPARK-IISc/Vaani) (CC BY 4.0, **gated**), one config per language. Defaults to Bengali; override with `configs:`.
 
 The four HuggingFace-hosted sources share one builder ([`src/opends/hf_asr.py`](src/opends/hf_asr.py)), which detects each corpus's audio/transcript columns at load time rather than hardcoding names that vary between repos, and resamples anything that isn't already 16 kHz mono.
 
