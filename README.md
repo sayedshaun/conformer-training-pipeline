@@ -26,6 +26,17 @@ The Bengali models produced by this pipeline are released on Hugging Face:
 
 **[SayedShaun/stt_bn_fastconformer_hybrid_large_v2](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large_v2)** (latest)
 
+Fine-tuned from `stt_en_fastconformer_hybrid_large_pc` on ~1,048 h of Bengali
+speech (Common Voice 26.0 + OpenSLR-53 + OpenSLR-37 `bn_bd`/`bn_in` + FLEURS
+`bn_in` + Ben-10 + Shrutilipi + Kathbath + IndicVoices), 657k utterances,
+covering both read and spontaneous speech across Bangladeshi and Indian
+Bengali varieties.
+
+| Held-out test (8,924 utterances, 14.26 h) | WER | CER |
+|---|---|---|
+| RNNT (greedy, no LM) | **17.87%** | **6.14%** |
+| CTC (greedy, no LM) | 23.38% | 7.68% |
+
 **[SayedShaun/stt_bn_fastconformer_hybrid_large_v1](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large_v1)** (older)
 
 Fine-tuned from `stt_en_fastconformer_hybrid_large_pc` on ~300 h of Bengali read
@@ -38,7 +49,7 @@ speech (Common Voice 26.0 + OpenSLR-53 + FLEURS `bn_in`), 262k utterances.
 ```python
 from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
 
-model = EncDecHybridRNNTCTCBPEModel.from_pretrained("SayedShaun/stt_bn_fastconformer_hybrid_large")
+model = EncDecHybridRNNTCTCBPEModel.from_pretrained("SayedShaun/stt_bn_fastconformer_hybrid_large_v2")
 print(model.transcribe(["sample_bn.wav"])[0].text)
 ```
 
