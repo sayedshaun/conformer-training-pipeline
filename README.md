@@ -22,8 +22,11 @@ Every stage is a thin CLI (`--config`, defaults to `config.yaml`) over core logi
 
 ## Trained weights
 
-The Bengali model produced by this pipeline is released on Hugging Face:
-**[SayedShaun/stt_bn_fastconformer_hybrid_large](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large)**
+The Bengali models produced by this pipeline are released on Hugging Face:
+
+**[SayedShaun/stt_bn_fastconformer_hybrid_large_v2](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large_v2)** (latest)
+
+**[SayedShaun/stt_bn_fastconformer_hybrid_large_v1](https://huggingface.co/SayedShaun/stt_bn_fastconformer_hybrid_large_v1)** (older)
 
 Fine-tuned from `stt_en_fastconformer_hybrid_large_pc` on ~300 h of Bengali read
 speech (Common Voice 26.0 + OpenSLR-53 + FLEURS `bn_in`), 262k utterances.
